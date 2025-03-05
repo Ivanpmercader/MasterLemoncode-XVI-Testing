@@ -1,0 +1,16 @@
+name: CI workflow
+
+on: pull_request
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install
+        run: |
+          npm ci
+          npm install @rollup/rollup-linux-x64-gnu --save-optional
+      - name: Tests
+        run: npm test
