@@ -1,627 +1,70 @@
-# React Real project Boilerplate
+# React Project with Testing
 
-In this example we will implement tests in a real project.
+This is a boilerplate for a React project that includes unit testing, end-to-end (E2E) testing with Cypress and Playwright, as well as continuous integration (CI) configurations for all tests.
 
-This boilerplate is copy of the [origin-front-admin repository](https://github.com/Lemoncode/origin-front-admin).
+## Project Setup
 
-# Steps
+To get started, follow these steps:
 
-`npm install` to install previous sample packages:
+### 1. Install Dependencies
+
+Begin by installing the necessary dependencies for the project. You can do this by running the following command:
 
 ```bash
 npm install
 ```
+This will install the necessary packages for the project, including:
 
-Let's add specs to `./src/common/components/form/select`:
+- Vistest for unit testing.
+- React for building the application.
+- Cypress for end-to-end (E2E) testing.
+- Playwright for additional E2E tests.
+- Testing Library for unit tests.
+- Testing Library Cypress for E2E tests with Cypress.
 
-_./src/common/components/form/select/select.component.spec.tsx_
+2. Configuration
+The project comes preconfigured with the following testing tools:
 
-```javascript
-import React from "react";
-import { render, screen } from "@testing-library/react";
-import { SelectComponent } from "./select.component";
+Cypress is set up for end-to-end (E2E) testing, including Testing Library Cypress tests.
+Playwright is also configured for running additional E2E tests.
 
-describe("SelectComponent specs", () => {
-  it("should render a select element when it feeds required props and three items", () => {
-    // Arrange
-    // Act
-    // Assert
-  });
-});
-```
-
-Run test watch:
+3. Run Unit Tests
+To run the unit tests with Jest, simply run:
 
 ```bash
-npm test select
-```
+  npm run test
+``` 
 
-Let's implement the first spec:
-
-_./src/common/components/form/select/select.component.spec.tsx_
-
-```diff
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { SelectComponent } from './select.component';
-
-describe('SelectComponent specs', () => {
-  it('should render a select element when it feeds required props and three items', () => {
-    // Arrange
-+   const props: React.ComponentProps<typeof SelectComponent> = {
-+     items: [
-+       { id: '1', name: 'Item 1' },
-+       { id: '2', name: 'Item 2' },
-+       { id: '3', name: 'Item 3' },
-+     ],
-+     label: 'Test label',
-+     value: '',
-+   };
-
-    // Act
-+   render(<SelectComponent {...props} />);
-
-+   const selectElement = screen.getByRole('combobox', { name: 'Test label' });
-    // Assert
-+   expect(selectElement).toBeInTheDocument();
-  });
-});
-```
-
-> An advantage of using `nodejs imports aliases` is that we don't need to configure for tests. It's already configured.
->
-> If you are using webpack or vite aliases you can read this post about [configuring aliases for jest](https://www.basefactor.com/configuring-aliases-in-webpack-vs-code-typescript-jest)
-
-Testing it should shows 3 items when it clicks on select:
-
-_./src/common/components/form/select/select.component.spec.tsx_
-
-```diff
-import React from 'react';
-- import { render, screen } from '@testing-library/react';
-+ import { render, screen, fireEvent } from '@testing-library/react';
-...
-
-+ it('should render a menu with three item when it clicks on select element', () => {
-+   // Arrange
-+   const props: React.ComponentProps<typeof SelectComponent> = {
-+     items: [
-+       { id: '1', name: 'Item 1' },
-+       { id: '2', name: 'Item 2' },
-+       { id: '3', name: 'Item 3' },
-+     ],
-+     label: 'Test label',
-+     value: '',
-+   };
-
-+   // Act
-+   render(<SelectComponent {...props} />);
-
-+   const selectElement = screen.getByRole('combobox', { name: 'Test label' });
-+   fireEvent.click(selectElement);
-+   const menuElement = screen.getByRole('listbox');
-
-+   // Assert
-+   expect(menuElement).toBeInTheDocument();
-+ });
-```
-
-> It fails.
->
-> We research about it and found this [issue](https://github.com/testing-library/react-testing-library/issues/322)
-
-Install library:
+4. Run E2E Tests with Cypress
+To run end-to-end tests (E2E) with Cypress, you can use the following command:
 
 ```bash
-npm install @testing-library/user-event --save-dev
-```
+  npm run test:e2e:cypress
+``` 
 
-Update spec:
-
-_./src/common/components/form/select/select.component.spec.tsx_
-
-```diff
-import React from 'react';
-- import { render, screen, fireEvent } from '@testing-library/react';
-+ import { render, screen } from '@testing-library/react';
-+ import userEvent from '@testing-library/user-event';
-...
-
-- it('should render a menu with three item when it clicks on select element', () => {
-+ it('should render a menu with three item when it clicks on select element', async () => {
-    // Arrange
-    const props: React.ComponentProps<typeof SelectComponent> = {
-      items: [
-        { id: '1', name: 'Item 1' },
-        { id: '2', name: 'Item 2' },
-        { id: '3', name: 'Item 3' },
-      ],
-      label: 'Test label',
-      value: '',
-    };
-    // Act
-    render(<SelectComponent {...props} />);
-
-    const selectElement = screen.getByRole('combobox', { name: 'Test label' });
--   fireEvent.click(selectElement);
-+   expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
-
-+   await userEvent.click(selectElement);
-    const menuElement = screen.getByRole('listbox');
-+   const itemElementList = screen.getAllByRole('option');
-
-    // Assert
-    expect(menuElement).toBeInTheDocument();
-+   expect(itemElementList).toHaveLength(3);
-  });
-```
-
-Testing should calls onChange method when it clicks on second item:
-
-_./src/common/components/form/select/select.component.spec.tsx_
-
-```diff
-...
-
-+ it('should calls onChange method with value equals 2 when it clicks on second item', async () => {
-+   // Arrange
-+   const props: React.ComponentProps<typeof SelectComponent> = {
-+     items: [
-+       { id: '1', name: 'Item 1' },
-+       { id: '2', name: 'Item 2' },
-+       { id: '3', name: 'Item 3' },
-+     ],
-+     label: 'Test label',
-+     value: '',
-+     onChange: vi.fn(),
-+   };
-
-+   // Act
-+   render(<SelectComponent {...props} />);
-
-+   const selectElement = screen.getByRole('combobox', { name: 'Test label' });
-
-+   await userEvent.click(selectElement);
-+   const itemElementList = screen.getAllByRole('option');
-+   await userEvent.click(itemElementList[1]);
-
-+   // Assert
-+   expect(props.onChange).toHaveBeenCalledWith(
-+     expect.objectContaining({ target: { value: '2' } }),
-+     expect.anything()
-+   );
-+ });
-```
-
-Testing should update selected item when it clicks on third item using Formik:
-
-_./src/common/components/form/select/select.component.spec.tsx_
-
-```diff
-...
-+ it('should update selected item when it clicks on third item using Formik', () => {
-+   // Arrange
-+   const props: React.ComponentProps<typeof SelectComponent> = {
-+     items: [
-+       { id: '1', name: 'Item 1' },
-+       { id: '2', name: 'Item 2' },
-+       { id: '3', name: 'Item 3' },
-+     ],
-+     label: 'Test label',
-+     name: 'selectedItem',
-+   };
-
-+   // Act
-+   render(<SelectComponent {...props} />);
-+ });
-```
-
-Create `renderWithFormik`:
-
-_./src/common/components/form/select/select.component.spec.tsx_
-
-```diff
-import React from 'react';
-+ import { Formik, Form } from 'formik';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { SelectComponent } from './select.component';
-
-+ const renderWithFormik = (component, initialValues) =>
-+   render(
-+     <Formik initialValues={initialValues} onSubmit={console.log}>
-+       {() => <Form>{component}</Form>}
-+     </Formik>
-+   );
-...
-
-- it('should update selected item when it clicks on third item using Formik', () => {
-+ it('should update selected item when it clicks on third item using Formik', async () => {
-    ...
-    // Act
--   render(<SelectComponent {...props} />);
-+   renderWithFormik(<SelectComponent {...props} />, { selectedItem: '1' });
-
-+   const selectElement = screen.getByRole('combobox', { name: "Test label" });
-
-+   expect(selectElement.textContent).toEqual('Item 1');
-
-+   await userEvent.click(selectElement);
-+   const itemElementList = screen.getAllByRole('option');
-+   await userEvent.click(itemElementList[2]);
-
-+   // Assert
-+   expect(selectElement.textContent).toEqual('Item 3');
-  });
-```
-
-We will testing `./src/common/components/search-bar`. It has a `component` and `hook` file:
-
-_./src/common/components/search-bar/search-bar.component.spec.tsx_
-
-```javascript
-import React from "react";
-import { render, screen } from "@testing-library/react";
-import { SearchBarComponent } from "./search-bar.component";
-
-describe("SearchBarComponent specs", () => {
-  it("should render an input with placeholder and searchIcon when it feeds required props", () => {
-    // Arrange
-    // Act
-    // Assert
-  });
-});
-```
-
-Let's render the component and check the input element:
-
-_./src/common/components/search-bar/search-bar.component.spec.tsx_
-
-```diff
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { SearchBarComponent } from './search-bar.component';
-
-describe('SearchBarComponent specs', () => {
-  it('should render an input with placeholder and searchIcon when it feeds required props', () => {
-    // Arrange
-+   const props: React.ComponentProps<typeof SearchBarComponent> = {
-+     search: 'test search',
-+     onSearch: vi.fn(),
-+     labels: {
-+       placeholder: 'test placeholder',
-+     },
-+   };
-
-    // Act
-+   render(<SearchBarComponent {...props} />);
-
-+   const inputElement = screen.getByRole('textbox') as HTMLInputElement;
-
-    // Assert
-+   expect(inputElement).toBeInTheDocument();
-+   expect(inputElement.value).toEqual('test search');
-  });
-});
-
-```
-
-> [ARIA roles](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles)
->
-> [Which query should I use?](https://testing-library.com/docs/guide-which-query)
-
-Another option is using:
-
-```javascript
-const inputElement = screen.getByPlaceholderText('test placeholder') as HTMLInputElement;
-```
-
-Start test watch:
+5. Run E2E Tests with Playwright
+For end-to-end tests with Playwright, use the following command:
 
 ```bash
-npm test search-bar
+  npm run test:e2e:playwright
+``` 
+
+6. Continuous Integration (CI)
+The project has been set up to run all tests (unit tests, Cypress E2E tests, and Playwright E2E tests) in the CI environment. The following steps are integrated into the CI:
+
+- Unit Tests are executed with Vitest.
+- E2E Tests with Cypress are executed with Cypress.
+- E2E Tests with Playwright are executed with Playwright.
+- The setup ensures that all tests are run automatically when a pull request is created or updated.
+
+7. Pull Requests
+E2E tests with Cypress and Playwright are included in the pull request to ensure that any changes are tested across all components before being merged.
+Unit tests are also included to verify the correctness of small units of code.
+To install the necessary dependencies:
+
+```bash
+npm install vitest jsdom @testing-library/react @testing-library/user-event @testing-library/jsdom @testing-library/dom @testing-library/cypress cypress playwright
 ```
 
-If we want to search icon element, we have to update the code:
-
-_./src/common/components/search-bar/search-bar.component.tsx_
-
-```diff
-...
-  return (
-    <TextField
-      className={className}
-      value={search}
-      onChange={e => onSearch(e.target.value)}
-      placeholder={labels.placeholder}
-      InputProps={{
--       startAdornment: <SearchIcon />,
-+       startAdornment: <SearchIcon aria-label="Search icon" />,
-      }}
-    />
-  );
-};
-
-```
-
-_./src/common/components/search-bar/search-bar.component.spec.tsx_
-
-```diff
-...
-    // Arrange
-    const props = {
-      search: 'test search',
-      onSearch: jest.fn(),
-      labels: {
-        placeholder: 'test placeholder',
-      },
-    };
-
-    // Act
-    render(<SearchBarComponent {...props} />);
-
-    const inputElement = screen.getByRole('textbox') as HTMLInputElement;
-+   const iconElement = screen.getByLabelText('Search icon');
-
-    // Assert
-    expect(inputElement).toBeInTheDocument();
-    expect(inputElement.value).toEqual('test search');
-+   expect(iconElement).toBeInTheDocument();
-  });
-});
-
-```
-
-Add second spec testing `onSearch` method:
-
-_./src/common/components/search-bar/search-bar.component.spec.tsx_
-
-```diff
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-+ import userEvent from '@testing-library/user-event';
-...
-
-+ it('should call onSearch prop when it types on input change event', async () => {
-+   // Arrange
-+   const props: React.ComponentProps<typeof SearchBarComponent> = {
-+     search: '',
-+     onSearch: vi.fn(),
-+     labels: {
-+       placeholder: 'test placeholder',
-+     },
-+   };
-
-+   // Act
-+   render(<SearchBarComponent {...props} />);
-
-+   const inputElement = screen.getByRole('textbox');
-+   inputElement.focus();
-+   await userEvent.paste('new text search');
-
-+   // Assert
-+   expect(props.onSearch).toHaveBeenCalledWith('new text search');
-+ });
-...
-
-```
-
-Let's add `search-bar.hook` specs:
-
-_./src/common/components/search-bar/search-bar.hook.spec.tsx_
-
-```javascript
-import { renderHook } from "@testing-library/react";
-import { useSearchBar } from "./search-bar.hook";
-
-describe("useSearchBar specs", () => {
-  it('should return search text, onSearch method and filteredList when it feeds colors array and "name" field', () => {
-    // Arrange
-    // Act
-    // Assert
-  });
-});
-```
-
-Let's implement first spec:
-
-_./src/common/components/search-bar/search-bar.hook.spec.tsx_
-
-```diff
-import { renderHook } from '@testing-library/react';
-import { useSearchBar } from './search-bar.hook';
-
-describe('useSearchBar specs', () => {
-  it('should return search text, onSearch method and filteredList when it feeds colors array and "name" field', () => {
-    // Arrange
-+   const colors = [
-+     { id: 1, name: 'red' },
-+     { id: 2, name: 'blue' },
-+     { id: 3, name: 'green' },
-+   ];
-
-    // Act
-+   const { result } = renderHook(() => useSearchBar(colors, ['name']));
-
-    // Assert
-+   expect(result.current.search).toEqual('');
-+   expect(result.current.onSearch).toEqual(expect.any(Function));
-+   expect(result.current.filteredList).toEqual([
-+     { id: 1, name: 'red' },
-+     { id: 2, name: 'blue' },
-+     { id: 3, name: 'green' },
-+   ]);
-  });
-});
-
-```
-
-Testing `filteredList` when we calls `onSearch` with some color:
-
-_./src/common/components/search-bar/search-bar.hook.spec.tsx_
-
-> It's async because we are using useDebounce hook.
-
-```diff
-- import { renderHook } from '@testing-library/react';
-+ import { renderHook, act, waitFor } from '@testing-library/react';
-import { useSearchBar } from './search-bar.hook';
-
-...
-
-+ it('should return filteredList with one element equals red when it calls onSearch method with "red" text', async () => {
-+   // Arrange
-+   const colors = [
-+     { id: 1, name: 'red' },
-+     { id: 2, name: 'blue' },
-+     { id: 3, name: 'green' },
-+   ];
-
-+   // Act
-+   const { result } = renderHook(() =>
-+     useSearchBar(colors, ['name'])
-+   );
-
-+   act(() => {
-+     result.current.onSearch('red');
-+   });
-
-+   // Assert
-+   await waitFor(() => {
-+     expect(result.current.search).toEqual('red');
-+     expect(result.current.filteredList).toEqual([{ id: 1, name: 'red' }]);
-+   });
-+ });
-
-```
-
-Testing it calls to `useDebounce` hook:
-
-_./src/common/components/search-bar/search-bar.hook.spec.tsx_
-
-```diff
-import { renderHook, act } from '@testing-library/react';
-+ import * as commonHooks from '#common/hooks';
-import { useSearchBar } from './search-bar.hook';
-...
-
-+ it('should calls useDebounce hook when it renders', () => {
-+   // Arrange
-+   const colors = [
-+     { id: 1, name: 'red' },
-+     { id: 2, name: 'blue' },
-+     { id: 3, name: 'green' },
-+   ];
-+   const debounceSearchStub = vi.spyOn(commonHooks, 'useDebounce');
-
-+   // Act
-+   renderHook(() => useSearchBar(colors, ['name']));
-
-+   // Assert
-+   expect(debounceSearchStub).toHaveBeenCalledWith('', 250);
-+ });
-
-```
-
-Testing `useDebounce` result:
-
-_./src/common/components/search-bar/search-bar.hook.spec.tsx_
-
-```diff
-...
-
-+ it('should return filteredList with one element equals blue when useDebounce return text equals "blue"', () => {
-+   // Arrange
-+   const colors = [
-+     { id: 1, name: 'red' },
-+     { id: 2, name: 'blue' },
-+     { id: 3, name: 'green' },
-+   ];
-+   const debounceSearchStub = vi
-+     .spyOn(commonHooks, 'useDebounce')
-+     .mockReturnValue('blue');
-
-+   // Act
-+   const { result } = renderHook(() => useSearchBar(colors, ['name']));
-
-+   // Assert
-+   expect(debounceSearchStub).toHaveBeenCalledWith('', 250);
-+   expect(result.current.search).toEqual('');
-+   expect(result.current.filteredList).toEqual([{ id: 2, name: 'blue' }]);
-+ });
-
-```
-
-Testing it calls to `filterByText` method:
-
-_./src/common/components/search-bar/search-bar.hook.spec.tsx_
-
-```diff
-import { renderHook, act, waitFor } from '@testing-library/react';
-import * as commonHooks from '#common/hooks';
-+ import * as filterHelpers from '#common/helpers';
-import { useSearchBar } from './search-bar.hook';
-...
-
-+ it('should calls filterByText method when it renders', () => {
-+   // Arrange
-+   const colors = [
-+     { id: 1, name: 'red' },
-+     { id: 2, name: 'blue' },
-+     { id: 3, name: 'green' },
-+   ];
-+   const filterByTextStub = vi.spyOn(filterHelpers, 'filterByText');
-
-+   // Act
-+   renderHook(() => useSearchBar(colors, ['name']));
-
-+   // Assert
-+   expect(filterByTextStub).toHaveBeenCalledWith(colors, '', ['name']);
-+ });
-
-```
-
-Testing `filterByText` result:
-
-_./src/common/components/search-bar/search-bar.hook.spec.tsx_
-
-```diff
-...
-
-+ it('should return filteredList with two elements equals blue and green when filterByText return array with two elements blue and green', () => {
-+   // Arrange
-+   const colors = [
-+     { id: 1, name: 'red' },
-+     { id: 2, name: 'blue' },
-+     { id: 3, name: 'green' },
-+   ];
-+   const filterByTextStub = vi
-+     .spyOn(filterHelpers, 'filterByText')
-+     .mockReturnValue([
-+       { id: 2, name: 'blue' },
-+       { id: 3, name: 'green' },
-+     ]);
-
-+   // Act
-+   const { result } = renderHook(() => useSearchBar(colors, ['name']));
-
-+   // Assert
-+   expect(filterByTextStub).toHaveBeenCalledWith(colors, '', ['name']);
-+   expect(result.current.search).toEqual('');
-+   expect(result.current.filteredList).toEqual([
-+     { id: 2, name: 'blue' },
-+     { id: 3, name: 'green' },
-+   ]);
-+ });
-
-```
-
-# About Basefactor + Lemoncode
-
-We are an innovating team of Javascript experts, passionate about turning your ideas into robust products.
-
-[Basefactor, consultancy by Lemoncode](http://www.basefactor.com) provides consultancy and coaching services.
-
-[Lemoncode](http://lemoncode.net/services/en/#en-home) provides training services.
-
-For the LATAM/Spanish audience we are running an Online Front End Master degree, more info: http://lemoncode.net/master-frontend
+Conclusion
+This project is a template that includes unit testing, end-to-end tests with Cypress and Playwright, and continuous integration for the automated execution of tests. You can add new components and tests, ensuring that all your code is covered and works as expected across different environments.
