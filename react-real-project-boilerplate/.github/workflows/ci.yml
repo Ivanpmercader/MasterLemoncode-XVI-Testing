@@ -12,5 +12,47 @@ jobs:
         run: |
           npm ci
           npm install @rollup/rollup-linux-x64-gnu --save-optional
-      - name: Tests
+      - name: Unit Tests
         run: npm test
+  cypress-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install
+        run: npm ci
+      - name: Cypress E2E Tests
+        run: npm run test:e2e:cypress:ci
+      - name: Cypress upload screenshots when specs fail
+        if: ${{ failure()}}      
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress screenshots
+          path: ./cypress/screenshots
+
+      - name: Cypress upload videos when specs fail
+        if: ${{ failure()}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress videos
+          path: ./cypress/videos
+  playwright-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Playwright E2E Tests
+        run: npm run test:e2e:playwright:ci
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
