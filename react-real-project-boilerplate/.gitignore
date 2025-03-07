@@ -8,3 +8,13 @@ junit.xml
 *.orig
 .awcache
 public
+
+# cypress
+cypress/screenshots
+cypress/videos
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

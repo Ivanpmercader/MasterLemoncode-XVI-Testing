@@ -1,0 +1,5 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Confirm Dialog specs > should check if content dialog are equal than content dialog props 1`] = `[Function]`;
+
+exports[`Confirm Dialog specs > should check if dialog is display and using snapshot testing 1`] = `<DocumentFragment />`;
